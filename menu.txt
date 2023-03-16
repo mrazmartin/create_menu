@@ -1,0 +1,42 @@
+KÁVA
+    Espresso €50 
+    Americano €55 
+    Espresso macchiato €55 
+    Cappuccino €65 
+    Espresso tonic €70 
+    Doppio €70 
+    Affogato €70 
+    Latte macchiato €70 
+    Vídeňská káva €70 
+    Flat white €80 
+    Alžírská káva €80 
+    Irská káva €80 
+    Ledová káva €90 
+HORKÉ NÁPOJE				
+    Horká čokoláda 0,15l €70 
+    Svařené víno 0,2l €70 
+    Svařený džus 0,2l €50 
+    Grog  0,2l €60 
+    Čaj 0,25l €50 
+PIVO
+    Pilsner Urquell 0,33l €40 
+VÍNO
+    Prosecco 0,1l €70 
+    Bílé - Sax Grüner Veltliner 0,2l €60 
+    Červené - Sax Cuvée Rotwein 0,2l €60 
+PRO DĚTI
+    Babyccino  0,1l €40 
+    Kakao 0,2l €45 
+MÍCHANÉ NÁPOJE
+    Limoška  0,4l €65 
+    Aperol Spritz 0,25l €100 
+    Cuba Libre  0,25l €110 
+    Gin Tonic 0,25l €110 
+    Mojito 0,4l €110 
+STUDENÉ NÁPOJE
+    Karafa vody 0,5l €30 
+    Jablečný mošt 0,2l €40 
+    Mattoni 0,33l €40 
+##
+    Alternativní mléko €10 
+    To go €5 
