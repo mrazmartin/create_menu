@@ -9,6 +9,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
+from reportlab.platypus import BaseDocTemplate, Frame, Paragraph, PageBreak, PageTemplate
+
 
 TOP_MARGIN = 20
 SIDE_MARGIN = 20
@@ -42,20 +44,21 @@ class create_menu():
 
 
 class menu_pdf():
-    def __init__(self, name_str) -> None:
+    def __init__(self, name_str, menu: create_menu) -> None:
         # A4 size = 210 x 297 mm
         self.pdf_doc = canvas.Canvas(name_str+"_menu.pdf", pagesize=A4, bottomup=1)
         self.width, self.height = self.pdf_doc._pagesize
         self.handle_logo()
 
         self.pdf_doc.setLineWidth(.3)
-        self.set_font()
-        self.pdf_doc.setFont('Bahn', 12)
+        self.set_font(menu)
         self.pdf_doc.drawString(10, 10, 'Hello, World!')
         self.pdf_doc.save()
     
-    def set_font(self):
+    def set_font(self, menu: create_menu):
+        font_size = (A4[1] - 2*self.logo_height) // (menu.num_items + menu.num_segments*0.6)
         pdfmetrics.registerFont(TTFont('Bahn', 'BAHNSCHRIFT.ttf'))
+        self.pdf_doc.setFont('Bahn', font_size)
 
     def handle_logo(self):
         try:
@@ -66,13 +69,13 @@ class menu_pdf():
         image_width, image_height = self.logo.getSize()
         
         scale = A4[0] / (2 * image_width + 2 * SIDE_MARGIN) 
-        logo_width = image_width * scale * 0.9
-        logo_height = image_height * scale * 0.9
-        x1 = (A4[0] - 2*logo_width) / 2 - SIDE_MARGIN
-        x2 = (A4[0] - 2*logo_width) / 2  + A4[0]/2 - SIDE_MARGIN
-        y = (A4[1] - logo_height) - TOP_MARGIN
-        self.pdf_doc.drawImage("logo.png", x1, y, width=logo_width, height=logo_height)
-        self.pdf_doc.drawImage("logo.png", x2, y, width=logo_width, height=logo_height)
+        self.logo_width = image_width * scale * 0.9
+        self.logo_height = image_height * scale * 0.9
+        x1 = (A4[0] - 2*self.logo_width) / 2 - SIDE_MARGIN
+        x2 = (A4[0] - 2*self.logo_width) / 2  + A4[0]/2 - SIDE_MARGIN
+        y = (A4[1] - self.logo_height) - TOP_MARGIN
+        self.pdf_doc.drawImage("logo.png", x1, y, width=self.logo_width, height=self.logo_height)
+        self.pdf_doc.drawImage("logo.png", x2, y, width=self.logo_width, height=self.logo_height)
 
 
 class food_item():
@@ -101,7 +104,8 @@ def main():
         print(i)
         for item in menu.segments[i]:
             print(repr(item.name), repr(item.price))
-    menu_pdf("vivo")
+
+    menu_pdf("vivo", menu)
 
 
 if __name__ == "__main__":
