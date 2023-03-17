@@ -10,6 +10,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 from reportlab.platypus import BaseDocTemplate, Frame, Paragraph, PageBreak, PageTemplate
+from reportlab.lib.styles import ParagraphStyle
 
 
 TOP_MARGIN = 20
@@ -52,9 +53,26 @@ class menu_pdf():
 
         self.pdf_doc.setLineWidth(.3)
         self.set_font(menu)
-        self.pdf_doc.drawString(10, 10, 'Hello, World!')
+        #   self.pdf_doc.drawString(10, 10, 'Hello, World!')
+        message = self.create_message(menu)
+        self.draw_paragraph(message, 50, A4[1]-self.logo_height-TOP_MARGIN, 350, 350)
         self.pdf_doc.save()
-    
+
+    def create_message(self, menu: create_menu):
+        message = ""
+        for i in menu.segments:
+            message = message + "\n<font color='blue'>"+ i + "</font>\n\n"
+            for item in menu.segments[i]:
+                message = "<font color='black'>" + message + item.name + "... " +item.price + "</font>\n"
+        return message
+
+    def draw_paragraph(self, msg, x, y, max_width, max_height):
+        message_style = ParagraphStyle('Normal')
+        message = msg.replace('\n', '<br />')
+        message = Paragraph(message, style=message_style)
+        w, h = message.wrap(max_width, max_height)
+        message.drawOn(self.pdf_doc, x, y - h)
+
     def set_font(self, menu: create_menu):
         font_size = (A4[1] - 2*self.logo_height) // (menu.num_items + menu.num_segments*0.6)
         pdfmetrics.registerFont(TTFont('Bahn', 'BAHNSCHRIFT.ttf'))
@@ -73,9 +91,12 @@ class menu_pdf():
         self.logo_height = image_height * scale * 0.9
         x1 = (A4[0] - 2*self.logo_width) / 2 - SIDE_MARGIN
         x2 = (A4[0] - 2*self.logo_width) / 2  + A4[0]/2 - SIDE_MARGIN
-        y = (A4[1] - self.logo_height) - TOP_MARGIN
-        self.pdf_doc.drawImage("logo.png", x1, y, width=self.logo_width, height=self.logo_height)
-        self.pdf_doc.drawImage("logo.png", x2, y, width=self.logo_width, height=self.logo_height)
+        y1 = (A4[1] - self.logo_height) - TOP_MARGIN
+        y2 = (self.logo_height) - TOP_MARGIN
+        self.pdf_doc.drawImage("logo.png", x1, y1, width=self.logo_width, height=self.logo_height)
+        self.pdf_doc.drawImage("logo.png", x2, y1, width=self.logo_width, height=self.logo_height)
+        self.pdf_doc.drawImage("logo.png", x1, y2, width=self.logo_width, height=self.logo_height)
+        self.pdf_doc.drawImage("logo.png", x2, y2, width=self.logo_width, height=self.logo_height)
 
 
 class food_item():
@@ -100,11 +121,7 @@ def main():
         menu_path = sys.argv[1]  
     menu = create_menu(menu_path)
     menu.read_file()
-    for i in menu.segments:
-        print(i)
-        for item in menu.segments[i]:
-            print(repr(item.name), repr(item.price))
-
+    
     menu_pdf("vivo", menu)
 
 
