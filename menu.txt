@@ -36,7 +36,7 @@ MÍCHANÉ NÁPOJE
 STUDENÉ NÁPOJE
     Karafa vody 0,5l €30 
     Jablečný mošt 0,2l €40 
-    Mattoni 0,33l €40 
+    Mattoni 0,33l €40
 ##
     Alternativní mléko €10 
     To go €5 
