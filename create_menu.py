@@ -22,6 +22,7 @@ class create_menu():
         self.segments = defaultdict(lambda: [])
         self.num_segments = 0
         self.num_items = 0
+        self.dims = A4
     
     def read_file(self):
         rawdata = open(self.file_path, 'rb').read()
@@ -47,7 +48,8 @@ class create_menu():
 class menu_pdf():
     def __init__(self, name_str, menu: create_menu) -> None:
         # A4 size = 210 x 297 mm
-        self.pdf_doc = canvas.Canvas(name_str+"_menu.pdf", pagesize=A4, bottomup=1)
+        self.dims = A4
+        self.pdf_doc = canvas.Canvas(name_str+"_menu.pdf", pagesize=self.dims, bottomup=1)
         self.width, self.height = self.pdf_doc._pagesize
         self.handle_logo()
 
@@ -55,7 +57,7 @@ class menu_pdf():
         self.set_font(menu)
         #   self.pdf_doc.drawString(10, 10, 'Hello, World!')
         message = self.create_message(menu)
-        self.draw_paragraph(message, 50, A4[1]-self.logo_height-TOP_MARGIN, 350, 350)
+        self.draw_paragraph(message, 50, self.dims[1]-self.logo_height-TOP_MARGIN, 350, 350)
         self.pdf_doc.save()
 
     def create_message(self, menu: create_menu):
@@ -63,9 +65,20 @@ class menu_pdf():
         for i in menu.segments:
             message = message + "\n<font color='blue'>"+ i + "</font>\n\n"
             for item in menu.segments[i]:
-                message = "<font color='black'>" + message + item.name + "... " +item.price + "</font>\n"
+                num_dots = self.calc_dots(item.name, item.price)
+                new_part = item.name + " " + num_dots*"." + " " + item.price
+                print(self.pdf_doc.stringWidth(new_part, self.pdf_doc._fontname, self.pdf_doc._fontsize))
+                message = "<font color='black'>" + message + new_part + "</font>\n"
         return message
 
+    def calc_dots(self, name, price) -> int:
+        name_len = self.pdf_doc.stringWidth(name, self.pdf_doc._fontname, self.pdf_doc._fontsize)
+        price_len = self.pdf_doc.stringWidth(price, self.pdf_doc._fontname, self.pdf_doc._fontsize)
+        dot_len = self.pdf_doc.stringWidth(".", self.pdf_doc._fontname, self.pdf_doc._fontsize)
+        num_dots = int((self.dims[0]/2 - (name_len + price_len)) / int(dot_len) )
+        print(f"name len: {int(name_len)}    price len: {int(price_len)}  dot len: {int(dot_len)}   num_dots: {num_dots}")
+        return num_dots
+    
     def draw_paragraph(self, msg, x, y, max_width, max_height):
         message_style = ParagraphStyle('Normal')
         message = msg.replace('\n', '<br />')
@@ -74,7 +87,7 @@ class menu_pdf():
         message.drawOn(self.pdf_doc, x, y - h)
 
     def set_font(self, menu: create_menu):
-        font_size = (A4[1] - 2*self.logo_height) // (menu.num_items + menu.num_segments*0.6)
+        font_size = (self.dims[1] - 2*self.logo_height) // (menu.num_items + menu.num_segments*0.6)
         pdfmetrics.registerFont(TTFont('Bahn', 'BAHNSCHRIFT.ttf'))
         self.pdf_doc.setFont('Bahn', font_size)
 
@@ -86,12 +99,12 @@ class menu_pdf():
             exit(1)
         image_width, image_height = self.logo.getSize()
         
-        scale = A4[0] / (2 * image_width + 2 * SIDE_MARGIN) 
-        self.logo_width = image_width * scale * 0.9
-        self.logo_height = image_height * scale * 0.9
-        x1 = (A4[0] - 2*self.logo_width) / 2 - SIDE_MARGIN
-        x2 = (A4[0] - 2*self.logo_width) / 2  + A4[0]/2 - SIDE_MARGIN
-        y1 = (A4[1] - self.logo_height) - TOP_MARGIN
+        scale = self.dims[0] / (2*image_width + 2*SIDE_MARGIN) 
+        self.logo_width = image_width * 0.9*scale
+        self.logo_height = image_height * 0.9*scale
+        x1 = (self.dims[0] - 2*self.logo_width)/ 2 - SIDE_MARGIN
+        x2 = (self.dims[0] - 2*self.logo_width)/ 2  + self.dims[0]/2 - SIDE_MARGIN
+        y1 = (self.dims[1] - self.logo_height) - TOP_MARGIN
         y2 = (self.logo_height) - TOP_MARGIN
         self.pdf_doc.drawImage("logo.png", x1, y1, width=self.logo_width, height=self.logo_height)
         self.pdf_doc.drawImage("logo.png", x2, y1, width=self.logo_width, height=self.logo_height)
