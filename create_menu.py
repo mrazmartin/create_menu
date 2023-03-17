@@ -172,6 +172,5 @@ def main():
     
     menu_pdf("vivo", menu)
 
-
 if __name__ == "__main__":
     main()
