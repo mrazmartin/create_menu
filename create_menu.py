@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 import sys
-import os
+import math
 import chardet
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -19,6 +19,8 @@ TEXT_SIDE_MARGIN = 20
 SET_FONT_SIZE = False
 MAX_FONT = 14
 
+TERMINAL_PRINT = False
+MAX_LINE_SCALE = 30
 
 class food_item():
     def __init__(self, line) -> None:
@@ -28,7 +30,7 @@ class food_item():
         self.get_name()
         self.name_len = 0
         self.price_len = 0
-        # self.size = len(self.name) + len(self.price) 
+        self.size = len(self.name) + len(self.price) 
 
     def get_name(self):
         self.name, self.price = self.line.split('€')
@@ -53,15 +55,19 @@ class create_menu():
         
         f = open(self.file_path, "r", encoding='utf-8')
         last_segment = ""
+        self.max_line_len = 0
         for line in f:
             if not line.startswith(" "):
                 self.segments[line.strip()]
                 last_segment = line.strip()
                 self.num_segments += 1
+                self.max_line_len = max(self.max_line_len, len(last_segment))
             else:
                 self.segments[last_segment].append(food_item(line))
                 self.num_items += 1
+                self.max_line_len = max(self.max_line_len, self.segments[last_segment][-1].size)
         self.segments[" "] = self.segments.pop("##")
+
 
 
 class menu_pdf():
@@ -88,7 +94,8 @@ class menu_pdf():
             for item in menu.segments[i]:
                 num_dots = self.calc_dots(item)
                 new_part = item.name + " " + num_dots*"." + " " + item.price
-                print(self.pdf_doc.stringWidth(new_part, self.pdf_doc._fontname, self.pdf_doc._fontsize))
+                if TERMINAL_PRINT:
+                    print(self.pdf_doc.stringWidth(new_part, self.pdf_doc._fontname, self.pdf_doc._fontsize))
                 message = "<font color='black'>" + message + new_part + "</font>\n"
         return message
 
@@ -98,9 +105,10 @@ class menu_pdf():
         dot_len = self.pdf_doc.stringWidth(".", self.pdf_doc._fontname, self.pdf_doc._fontsize)
         num_dots = int((self.dims[0]/2 - (item.name_len + item.price_len)-2*TEXT_SIDE_MARGIN) / dot_len )
 
-        print(f"\n{item.name} - {item.price}\nname len: {int(item.name_len)}",
-                f"price len: {int(item.price_len)}",
-              f"dot len: {int(dot_len)}   num_dots: {num_dots}")
+        if TERMINAL_PRINT:
+            print(f"\n{item.name} - {item.price}\nname len: {int(item.name_len)}",
+                    f"price len: {int(item.price_len)}",
+                f"dot len: {int(dot_len)}   num_dots: {num_dots}")
         return num_dots
     
     def draw_paragraph(self, msg, x, y, max_width, max_height, menu):
@@ -122,7 +130,11 @@ class menu_pdf():
         else:
             font_size = (self.dims[1] - 2*self.logo_height -2*TOP_MARGIN) / (menu.num_items + menu.num_segments*2.2)
             font_size = min(font_size, MAX_FONT)
-            print(font_size)
+            print(f"font size set to: {font_size}")
+
+        if menu.max_line_len/MAX_LINE_SCALE > 1:
+            font_size = font_size * math.sqrt(MAX_LINE_SCALE/menu.max_line_len)
+
         self.pdf_doc.setFontSize(font_size)
         if msg_ret:
             return font_size, "Bahn"
